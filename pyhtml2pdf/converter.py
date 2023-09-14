@@ -22,6 +22,7 @@ def convert(
     power: int = 0,
     install_driver: bool = True,
     print_options: dict = {},
+    driver_path=None,
 ):
     """
     Convert a given html file or website into PDF
@@ -33,10 +34,11 @@ def convert(
     :param int power: power of the compression. Default value is 0. This can be 0: default, 1: prepress, 2: printer, 3: ebook, 4: screen
     :param bool install_driver: whether or not to install using ChromeDriverManager. Default value is True
     :param dict print_options: options for the printing of the PDF. This can be any of the params in here:https://vanilla.aslushnikov.com/?Page.printToPDF
+    :param str driver_path: path to the ChromeDriver. Default value is None
     """
 
     result = __get_pdf_from_html(
-        source, timeout, install_driver, print_options)
+        source, timeout, install_driver, print_options, driver_path)
 
     if compress:
         __compress(result, target, power)
@@ -58,7 +60,7 @@ def __send_devtools(driver, cmd, params={}):
 
 
 def __get_pdf_from_html(
-    path: str, timeout: int, install_driver: bool, print_options: dict
+    path: str, timeout: int, install_driver: bool, print_options: dict, driver_path: str = None
 ):
     webdriver_options = Options()
     webdriver_prefs = {}
@@ -72,11 +74,18 @@ def __get_pdf_from_html(
 
     webdriver_prefs["profile.default_content_settings"] = {"images": 2}
 
+
+    
     if install_driver:
-        service = Service(ChromeDriverManager().install())
+        if driver_path:
+            service = Service(executable_path=driver_path)
+        else:
+            service = Service(ChromeDriverManager().install())
         driver = webdriver.Chrome(service=service, options=webdriver_options)
     else:
-        driver = webdriver.Chrome(options=webdriver_options)
+        webdriver.Chrome(options=webdriver_options)
+
+        
 
     driver.get(path)
 
